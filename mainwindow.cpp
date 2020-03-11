@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     loadConfig();
 
-    setGeometry(0, 0, 850, 480);
+//    setGeometry(0, 0, 850, 480);
 
     QWidget* w = new QWidget(this);
     QHBoxLayout* pLayout = new QHBoxLayout();
@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
     m_pDisplayer = new SwirDisplayer(this);
     m_pVideoSaver = new VideoThread(this);
+    m_pVideoSaver->start();
 
     connect(this, SIGNAL(updatePatch(QImage)), m_pPatchDlg->getCanvas(), SLOT(updateImage(QImage)));
     connect(this, SIGNAL(updateConnectIcon(QString)), m_pbtnConnect, SLOT(updateImage(QString)));
@@ -98,9 +99,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_pbtnConnect, SIGNAL(clicked()), this, SLOT(onConnect()));
 
     connect(this, SIGNAL(updateFPS(float)), m_pControl, SLOT(updateFPS(float)));
-    connect(m_pControl, SIGNAL(savePhoto()), this, SLOT(onSavePhoto()));
-    connect(m_pControl, SIGNAL(startRecording()), this, SLOT(onStartRecording()));
-    connect(m_pControl, SIGNAL(stopRecording()), this, SLOT(onStopRecording()));
+    connect(pbtnPhoto, SIGNAL(clicked()), this, SLOT(onSavePhoto()));
+    connect(pbtnVideo, SIGNAL(clicked()), this, SLOT(onVideo()));
     connect(this, SIGNAL(updateAnalyzeImage(QImage)), m_pAnalyzer, SLOT(updateImage(QImage)));
 
     connect(m_pDisplayer, SIGNAL(display(QImage)), this, SLOT(onDisplay(QImage)));
@@ -108,6 +108,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(record(bool)), m_pVideoSaver, SLOT(record(bool)));
     connect(m_pVideoSaver, SIGNAL(videoSaved(QString)), this, SLOT(onVideoSaved(QString)));
     connect(m_pAnalyzer, SIGNAL(imageSaved(QString)), this, SLOT(onPhotoSaved(QString)));
+
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    restoreGeometry(settings.value("main/geometry").toByteArray());
+    restoreState(settings.value("main/windowState").toByteArray());
 
     m_pDisplayer->start();
     QTimer* t = new QTimer(this);
@@ -130,9 +139,30 @@ MainWindow::~MainWindow()
     m_ImageBufferList.clear();
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+//    emit storeGeometry();
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    settings.setValue("main/geometry", saveGeometry());
+    settings.setValue("main/windowState", saveState());
+
+    saveConfig();
+}
+
 void MainWindow::onConnect()
 {
     connectCamera(!m_bCameraConnected);
+}
+
+void MainWindow::onVideo()
+{
+    m_bRecording = !m_bRecording;
+    emit record(m_bRecording);
 }
 
 void MainWindow::connected(bool bConnected)
@@ -203,17 +233,6 @@ void MainWindow::connectCamera(bool bConnect)
     }
 }
 
-void MainWindow::onStopRecording()
-{
-    emit record(false);
-}
-
-void MainWindow::onStartRecording()
-{
-    m_pVideoSaver->start();
-    emit record(true);
-}
-
 void MainWindow::onSavePhoto()
 {
     PhotoThread* pPhotoSaver = new PhotoThread(this);
@@ -261,6 +280,7 @@ void MainWindow::onPatchClose()
         m_pPatchDlg = nullptr;
     }
 }
+
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     int h = rect().height();
@@ -291,7 +311,6 @@ void MainWindow::loadConfig()
     settings.beginGroup("common");
     m_settings.path = settings.value("path", pathDefault).toString();
     m_settings.bMirror = settings.value("mirror", "false").toBool();
-
     settings.endGroup();
 }
 
@@ -314,7 +333,7 @@ void MainWindow::saveConfig()
     settings.setValue("correction", m_settings.bCorrection);
     settings.endGroup();
 
-    settings.beginGroup("Common");
+    settings.beginGroup("common");
     settings.setValue("path", m_settings.path);
     settings.setValue("mirror", m_settings.bMirror);
     settings.endGroup();

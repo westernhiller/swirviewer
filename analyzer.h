@@ -27,6 +27,7 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     QImage          m_image;

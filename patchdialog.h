@@ -21,6 +21,7 @@ signals:
 protected:
     void resizeEvent(QResizeEvent *event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     Canvas*         m_pCanvas;

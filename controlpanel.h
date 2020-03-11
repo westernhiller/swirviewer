@@ -33,7 +33,7 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
-
+    void closeEvent(QCloseEvent *event) override;
 private:
     Ui::ControlPanel *ui;
     SWIRSETTINGS*   m_pSettings;

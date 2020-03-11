@@ -12,8 +12,6 @@ Analyzer::Analyzer(QWidget* parent)
 {
     setWindowTitle(QString::fromUtf8("图像分析"));
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
-//    setFixedSize(800, 400);
-    setGeometry(0, 0, 800, 520);
 
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
@@ -63,6 +61,13 @@ Analyzer::Analyzer(QWidget* parent)
     pLayout->addWidget(m_pChartView);
 
     setLayout(pLayout);
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    setGeometry(settings.value("analyzer/geometry").toRect());
 }
 
 Analyzer::~Analyzer()
@@ -76,6 +81,19 @@ void Analyzer::keyPressEvent(QKeyEvent* event)
     if(keyValue & Qt::Key_Escape)
     {
     }
+}
+
+void Analyzer::closeEvent(QCloseEvent *event)
+{
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    settings.setValue("analyzer/geometry", geometry());
+//    settings.setValue("analyzerwindowState", saveState());
+    QDialog::closeEvent(event);
 }
 
 void Analyzer::addLine(int index, int line)

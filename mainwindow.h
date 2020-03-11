@@ -34,6 +34,7 @@ signals:
 
 protected:
     void resizeEvent(QResizeEvent * event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     GLCanvas*       m_pCanvas;
@@ -67,8 +68,7 @@ public slots:
     void            onTimer();
     void            killProcessor();
     void            onSavePhoto();
-    void            onStartRecording();
-    void            onStopRecording();
+    void            onVideo();
     void            onPhotoSaved(QString);
     void            onVideoSaved(QString);
     void            onConnect();

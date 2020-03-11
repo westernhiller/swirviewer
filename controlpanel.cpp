@@ -18,7 +18,6 @@ ControlPanel::ControlPanel(QWidget *parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
     ui->setupUi(this);
     setWindowTitle(QString::fromUtf8("设置"));
-    setFixedSize(435, 614);
     ui->labelPath->setText(m_pSettings->path);
     ui->sliderGain->setValue(5);
     ui->sliderGain->setRange(1, 10);
@@ -51,6 +50,16 @@ ControlPanel::ControlPanel(QWidget *parent)
     connect(ui->cbMirror, SIGNAL(stateChanged(int)), this, SLOT(mirrorCheckBoxChanged(int)));
     connect(ui->btnBrowse, SIGNAL(clicked()), this, SLOT(onBrowse()));
     connect(ui->btnAdjustOnsite, SIGNAL(clicked()), this, SLOT(onAdjustOnsite()));
+
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    QRect rt = settings.value("control/geometry").toRect();
+    setGeometry(rt);
+    setFixedSize(rt.width(), rt.height());
 }
 
 ControlPanel::~ControlPanel()
@@ -64,6 +73,18 @@ void ControlPanel::keyPressEvent(QKeyEvent* event)
     if(keyValue & Qt::Key_Escape)
     {
     }
+}
+
+void ControlPanel::closeEvent(QCloseEvent *event)
+{
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    settings.setValue("control/geometry", geometry());
+    QDialog::closeEvent(event);
 }
 
 void ControlPanel::enableItems(bool bEnable)
