@@ -39,7 +39,6 @@ typedef struct
     bool bSmooth;
     bool bIntegral;
     bool bCorrection;
-    bool bKeepRatio;
     bool bMirror;
 } SWIRSETTINGS;
 

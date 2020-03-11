@@ -1,4 +1,4 @@
-#include "imagebutton.h"
+﻿#include "imagebutton.h"
 #include <QPainter>
 #include <stdio.h>
 
@@ -44,5 +44,10 @@ void ImageButton::paintEvent(QPaintEvent *event)
     }
 }
 
+void ImageButton::updateImage(QString image)
+{
+    m_img = QPixmap(image);
+    update();
+}
 
 

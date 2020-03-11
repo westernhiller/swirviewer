@@ -58,21 +58,41 @@ LIBS += -L/usr/local/lib \
 }
 
 SOURCES += \
+        analyzer.cpp \
+        canvas.cpp \
+        controlpanel.cpp \
         glcanvas.cpp \
         imagebuffer.cpp \
         imagebutton.cpp \
+        ipctrl.cpp \
+        linepicker.cpp \
         main.cpp \
         mainwindow.cpp \
         patchdialog.cpp \
-        utils.cpp
+        photothread.cpp \
+        swircapturer.cpp \
+        swirdisplayer.cpp \
+        swirprocessor.cpp \
+        utils.cpp \
+        videothread.cpp
 
 HEADERS += \
+        analyzer.h \
+        canvas.h \
+        controlpanel.h \
         glcanvas.h \
         global.h \
         imagebuffer.h \
         imagebutton.h \
+        ipctrl.h \
+        linepicker.h \
         mainwindow.h \
-        patchdialog.h
+        patchdialog.h \
+        photothread.h \
+        swircapturer.h \
+        swirdisplayer.h \
+        swirprocessor.h \
+        videothread.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -84,3 +104,6 @@ RESOURCES += \
 
 RC_ICONS = swir.ico
 RC_FILE += version.rc
+
+FORMS += \
+    controlpanel.ui

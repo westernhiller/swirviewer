@@ -7,6 +7,9 @@
         <file>icons/stop.png</file>
         <file>icons/zoomin.png</file>
         <file>icons/zoomout.png</file>
-        <file>icons/exit.ico</file>
+        <file>icons/connect.png</file>
+        <file>icons/disconnect.png</file>
+        <file>icons/settings.png</file>
+        <file>icons/settingspressed.png</file>
     </qresource>
 </RCC>

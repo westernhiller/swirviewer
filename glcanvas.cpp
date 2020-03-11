@@ -123,15 +123,7 @@ void GLCanvas::paintGL()
     {
         if(m_pSettings->bMirror)
         {
-            if(m_pSettings->bKeepRatio)
-                swiridx = 3;
-            else {
-                swiridx = 2;
-            }
-        }
-        else if(m_pSettings->bKeepRatio)
-        {
-            swiridx = 1;
+            swiridx = 2;
         }
         else {
             swiridx = 0;

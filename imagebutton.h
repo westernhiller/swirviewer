@@ -1,4 +1,4 @@
-#ifndef IMAGEBUTTON_H
+﻿#ifndef IMAGEBUTTON_H
 #define IMAGEBUTTON_H
 
 #include <QLabel>
@@ -26,6 +26,9 @@ protected:
 
     QPixmap m_img;					/*!<按键图像 */
     QPixmap m_imgHighlighted;		/*!<按键按下时图像 */
+
+public slots:
+    void updateImage(QString);
 };
 
 #endif // IMAGEBUTTON_H

@@ -2,7 +2,8 @@
 #define PATCHDIALOG_H
 
 #include <QDialog>
-#include "glcanvas.h"
+#include <QKeyEvent>
+#include "canvas.h"
 
 class PatchDialog : public QDialog
 {
@@ -13,11 +14,16 @@ public:
     ~PatchDialog();
 
     inline SWIRSETTINGS* getSettings() { return m_pSettings;}
-    inline GLCanvas* getCanvas() { return m_pCanvas;}
+    inline Canvas* getCanvas() { return m_pCanvas;}
 signals:
+    void updateImage(QImage);
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
-    GLCanvas*       m_pCanvas;
+    Canvas*         m_pCanvas;
     SWIRSETTINGS*   m_pSettings;
 };
 
