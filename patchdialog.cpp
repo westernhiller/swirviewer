@@ -3,14 +3,13 @@
 #include "mainwindow.h"
 
 PatchDialog::PatchDialog(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
     , m_pSettings(nullptr)
 {
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
 
     setWindowTitle(QString::fromUtf8("截图"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
 
     QImage imgSwir = QImage(tr(":/icons/swir.png"));
 
@@ -29,7 +28,7 @@ PatchDialog::PatchDialog(QWidget *parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-    setGeometry(settings.value("patch/geometry").toRect());
+    setGeometry(settings.value("patch/geometry", "@Rect(300 673 390 401)").toRect());
 }
 
 PatchDialog::~PatchDialog()

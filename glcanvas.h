@@ -28,6 +28,7 @@ signals:
     void getImage(QImage image);
     void sendMessage(QString);
     void boxSelect(QRect);
+    void clicked();
 
 protected:
     void initializeGL() override;
@@ -35,6 +36,7 @@ protected:
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     void makeObject();

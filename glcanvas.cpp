@@ -183,6 +183,11 @@ void GLCanvas::mousePressEvent(QMouseEvent *event)
     m_lastPos = event->pos();
 }
 
+void GLCanvas::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    emit clicked();
+}
+
 void GLCanvas::mouseReleaseEvent(QMouseEvent * event)
 {
     int dx = event->x() - m_lastPos.x();

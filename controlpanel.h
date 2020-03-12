@@ -57,6 +57,7 @@ public slots:
     void updateFPS(float);
     void onBrowse();
     void onAdjustOnsite();
+    void connected(bool);
 };
 
 #endif // CONTROLPANEL_H

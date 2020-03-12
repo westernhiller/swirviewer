@@ -9,11 +9,10 @@
 #include "mainwindow.h"
 
 ControlPanel::ControlPanel(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
     , ui(new Ui::ControlPanel)
     , m_bCameraConnected(false)
 {
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
     ui->setupUi(this);
@@ -57,7 +56,7 @@ ControlPanel::ControlPanel(QWidget *parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-    QRect rt = settings.value("control/geometry").toRect();
+    QRect rt = settings.value("control/geometry", "@Rect(0 0 435 576)").toRect();
     setGeometry(rt);
     setFixedSize(rt.width(), rt.height());
 }
@@ -84,7 +83,13 @@ void ControlPanel::closeEvent(QCloseEvent *event)
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
     settings.setValue("control/geometry", geometry());
+
     QDialog::closeEvent(event);
+}
+
+void ControlPanel::connected(bool bConnected)
+{
+    enableItems(bConnected);
 }
 
 void ControlPanel::enableItems(bool bEnable)

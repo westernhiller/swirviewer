@@ -7,11 +7,10 @@
 #include "linepicker.h"
 
 Analyzer::Analyzer(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
     , m_pSettings(nullptr)
 {
     setWindowTitle(QString::fromUtf8("图像分析"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
 
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
@@ -67,7 +66,7 @@ Analyzer::Analyzer(QWidget* parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-    setGeometry(settings.value("analyzer/geometry").toRect());
+    setGeometry(settings.value("analyzer/geometry", "@Rect(137 125 615 520)").toRect());
 }
 
 Analyzer::~Analyzer()

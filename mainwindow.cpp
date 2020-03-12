@@ -18,10 +18,27 @@ MainWindow::MainWindow(QWidget *parent)
 {
     loadConfig();
 
-//    setGeometry(0, 0, 850, 480);
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    restoreGeometry(settings.value("main/geometry").toByteArray());
+    restoreState(settings.value("main/windowState").toByteArray());
+    QRect geo = geometry();
 
-    QWidget* w = new QWidget(this);
-    QHBoxLayout* pLayout = new QHBoxLayout();
+    QImage imgSwir = QImage(tr(":/icons/swir.png"));
+    QColor clearColor;
+    clearColor.setHsv(255, 255, 63);
+
+    m_pCanvas = new GLCanvas(this, imgSwir);
+    m_pCanvas->setGeometry(210, 0, imgSwir.width(), imgSwir.height());
+    m_pCanvas->setClearColor(clearColor);
+    connect(m_pCanvas, SIGNAL(clicked()), this, SLOT(showToolbar()));
+
+    m_pToolBar = new QWidget(this);
+    m_pToolBar->setGeometry(0, 0, 210, geo.height());
     QVBoxLayout* pToolBar = new QVBoxLayout();
     m_pbtnConnect = new ImageButton(":/icons/connect.png");
     ImageButton* pbtnPhoto = new ImageButton(":/icons/photo.png", ":/icons/photopressed.png");
@@ -32,19 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
     pToolBar->addWidget(m_pbtnConnect);
     pToolBar->addWidget(pbtnPhoto);
     pToolBar->addWidget(pbtnVideo);
-    pLayout->addLayout(pToolBar);
-
-    QImage imgSwir = QImage(tr(":/icons/swir.png"));
-    QColor clearColor;
-    clearColor.setHsv(255, 255, 63);
-
-    m_pCanvas = new GLCanvas(this, imgSwir);
-    m_pCanvas->setGeometry(210, 0, imgSwir.width(), imgSwir.height());
-    m_pCanvas->setClearColor(clearColor);
-
-    pLayout->addWidget(m_pCanvas);
-    w->setLayout(pLayout);
-    setCentralWidget(w);
+    m_pToolBar->setLayout(pToolBar);
+    m_pToolBar->hide();
 
     m_pAnalyzer = new Analyzer(this);
     m_pAnalyzer->show();
@@ -76,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
         if(i == 0)
         {
             connect(pCapturer, SIGNAL(cameraConncted(bool)), this, SLOT(connected(bool)));
+            connect(pCapturer, SIGNAL(cameraConncted(bool)), m_pControl, SLOT(connected(bool)));
             connect(pCapturer, SIGNAL(updateMode(uint32_t)), m_pControl, SLOT(setMode(uint32_t)));
             connect(pCapturer, SIGNAL(updateIntegral(double)), m_pControl, SLOT(setIntegral(double)));
             connect(pCapturer, SIGNAL(updateCycle(double)), m_pControl, SLOT(setFrameCycle(double)));
@@ -109,15 +116,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_pVideoSaver, SIGNAL(videoSaved(QString)), this, SLOT(onVideoSaved(QString)));
     connect(m_pAnalyzer, SIGNAL(imageSaved(QString)), this, SLOT(onPhotoSaved(QString)));
 
-#ifdef WIN32
-    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
-#else
-    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
-#endif
-    restoreGeometry(settings.value("main/geometry").toByteArray());
-    restoreState(settings.value("main/windowState").toByteArray());
-
     m_pDisplayer->start();
     QTimer* t = new QTimer(this);
     connect(t, SIGNAL(timeout()), this, SLOT(onTimer()));
@@ -139,9 +137,20 @@ MainWindow::~MainWindow()
     m_ImageBufferList.clear();
 }
 
+void MainWindow::showToolbar()
+{
+    static bool bToolbar = false;
+
+    bToolbar = !bToolbar;
+    if(bToolbar)
+        m_pToolBar->show();
+    else {
+        m_pToolBar->hide();
+    }
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-//    emit storeGeometry();
 #ifdef WIN32
     QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
 #else
@@ -149,9 +158,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
     settings.setValue("main/geometry", saveGeometry());
-    settings.setValue("main/windowState", saveState());
+    settings.setValue("main/windowState", saveState()); 
 
     saveConfig();
+
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::onConnect()
@@ -283,10 +294,7 @@ void MainWindow::onPatchClose()
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
-    int h = rect().height();
-    int w = rect().width();
-
-    m_pCanvas->setGeometry(210, 0, w - 210, h);
+    m_pCanvas->setGeometry(this->rect());
 }
 
 void MainWindow::loadConfig()

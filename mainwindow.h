@@ -37,6 +37,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    QWidget*        m_pToolBar;
     GLCanvas*       m_pCanvas;
     SWIRSETTINGS    m_settings;
     ImageButton*    m_pbtnConnect;
@@ -73,6 +74,7 @@ public slots:
     void            onVideoSaved(QString);
     void            onConnect();
     void            connected(bool);
+    void            showToolbar();
 };
 
 #endif // MAINWINDOW_H
