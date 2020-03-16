@@ -180,24 +180,7 @@ void GLCanvas::resizeCanvas(int width, int height)
 
 void GLCanvas::mousePressEvent(QMouseEvent *event)
 {
-<<<<<<< HEAD
     if(event->button() == Qt::RightButton)
-=======
-    m_lastPos = event->pos();
-}
-
-void GLCanvas::mouseDoubleClickEvent(QMouseEvent* event)
-{
-    emit clicked();
-}
-
-void GLCanvas::mouseReleaseEvent(QMouseEvent * event)
-{
-    int dx = event->x() - m_lastPos.x();
-    int dy = event->y() - m_lastPos.y();
-
-    if((abs(dx) > 7) && (abs(dy) > 7))
->>>>>>> ced1115eb0e78d7e399af6991fd76655586a0538
     {
         QRect rt = geometry();
         int x = event->x() * m_image.width() / rt.width();

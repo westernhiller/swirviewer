@@ -9,10 +9,7 @@ PatchDialog::PatchDialog(QWidget *parent)
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
 
-<<<<<<< HEAD
     setWindowTitle(QString::fromUtf8("放大"));
-=======
-    setWindowTitle(QString::fromUtf8("截图"));
 
     QImage imgSwir = QImage(tr(":/icons/swir.png"));
 
@@ -20,7 +17,6 @@ PatchDialog::PatchDialog(QWidget *parent)
 
     connect(this, SIGNAL(updateImage(QImage)), m_pCanvas, SLOT(updateImage(QImage)));
     emit updateImage(imgSwir);
->>>>>>> ced1115eb0e78d7e399af6991fd76655586a0538
 
     QHBoxLayout* pLayout = new QHBoxLayout();
     m_pCanvas = new Canvas(this);
