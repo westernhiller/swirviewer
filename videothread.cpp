@@ -44,7 +44,7 @@ void VideoThread::run()
 //                m_pVideoSaver->write(pFrame->matImg);
 
                 Mat image;
-                cvtColor(pFrame->matImg, image, CV_GRAY2RGB);
+                cvtColor(pFrame->matImg, image, COLOR_GRAY2RGB);
                 m_pVideoSaver->write(image);
             }
             m_mutex.unlock();

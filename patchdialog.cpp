@@ -14,10 +14,6 @@ PatchDialog::PatchDialog(QWidget *parent)
     QImage imgSwir = QImage(tr(":/icons/swir.png"));
 
     m_pCanvas = new Canvas(this);
-
-    connect(this, SIGNAL(updateImage(QImage)), m_pCanvas, SLOT(updateImage(QImage)));
-    emit updateImage(imgSwir);
-
     QHBoxLayout* pLayout = new QHBoxLayout();
     m_pCanvas = new Canvas(this);
     connect(this, SIGNAL(updatePatchImage(QImage)), m_pCanvas, SLOT(updateImage(QImage)));
