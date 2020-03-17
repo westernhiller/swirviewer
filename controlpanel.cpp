@@ -65,11 +65,7 @@ ControlPanel::ControlPanel(QWidget *parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-<<<<<<< HEAD
     QRect rt = settings.value("control/geometry", "@Rect(0 0 435 652)").toRect();
-=======
-    QRect rt = settings.value("control/geometry", "@Rect(0 0 435 576)").toRect();
->>>>>>> ced1115eb0e78d7e399af6991fd76655586a0538
     setGeometry(rt);
     setFixedSize(rt.width(), rt.height());
 }
