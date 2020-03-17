@@ -79,14 +79,11 @@ public slots:
     void            onConnect();
     void            connected(bool);
     void            showToolbar();
-<<<<<<< HEAD
     void            setPatchImageMode();
     void            onMovePatchLeft();
     void            onMovePatchRight();
     void            onMovePatchUp();
     void            onMovePatchDown();
-=======
->>>>>>> ced1115eb0e78d7e399af6991fd76655586a0538
 };
 
 #endif // MAINWINDOW_H
