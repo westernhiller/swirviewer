@@ -61,9 +61,12 @@ public slots:
     void onBrowse();
     void onAdjustOnsite();
     void connected(bool);
+<<<<<<< HEAD
     void onPixelSelect(QPoint);
     void XCoordChanged(int);
     void YCoordChanged(int);
+=======
+>>>>>>> ced1115eb0e78d7e399af6991fd76655586a0538
 };
 
 #endif // CONTROLPANEL_H
