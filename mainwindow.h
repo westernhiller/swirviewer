@@ -26,8 +26,9 @@ public:
 signals:
     void updateImage(QImage);
     void updatePatch(QImage);
+    void pixelSelect(QPoint);
     void updateConnectIcon(QString);
-    void updateAnalyzeImage(QImage);
+    void updateAnalyzeImage(QByteArray);
     void saveVideoFrame(QImage);
     void updateFPS(float);
     void record(bool);
@@ -37,11 +38,13 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    QWidget*        m_pToolBar;
     GLCanvas*       m_pCanvas;
     SWIRSETTINGS    m_settings;
     ImageButton*    m_pbtnConnect;
     PatchDialog*    m_pPatchDlg;
     QRect           m_patchRect;
+    QPoint          m_patchCenter;
     Analyzer*       m_pAnalyzer;
     ControlPanel*   m_pControl;
     int             m_nCapturers;
@@ -54,6 +57,7 @@ private:
     bool            m_bRecording;
     bool            m_bCapturing;
     bool            m_bAnalyzing;
+    bool            m_bZooming;
     bool            m_bCameraConnected;
 
     void            loadConfig();
@@ -61,7 +65,8 @@ private:
     void            connectCamera(bool);
 
 public slots:
-    void            onBoxSelect(QRect);
+    void            updatePatchSize(int width, int height);
+    void            onPixelSelect(QPoint);
     void            onPatchClose();
     void            onFrame(QByteArray);
     void            onDisplay(QImage);
@@ -73,6 +78,12 @@ public slots:
     void            onVideoSaved(QString);
     void            onConnect();
     void            connected(bool);
+    void            showToolbar();
+    void            setPatchImageMode();
+    void            onMovePatchLeft();
+    void            onMovePatchRight();
+    void            onMovePatchUp();
+    void            onMovePatchDown();
 };
 
 #endif // MAINWINDOW_H

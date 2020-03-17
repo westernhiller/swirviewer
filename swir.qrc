@@ -1,6 +1,7 @@
 ﻿<RCC>
     <qresource prefix="/">
         <file>icons/swir.png</file>
+        <file>icons/swir2.png</file>
         <file>icons/photo.png</file>
         <file>icons/photopressed.png</file>
         <file>icons/record.png</file>

@@ -27,14 +27,14 @@ public:
 signals:
     void getImage(QImage image);
     void sendMessage(QString);
-    void boxSelect(QRect);
+    void pixelSelect(QPoint);
+    void clicked();
 
 protected:
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
     void makeObject();

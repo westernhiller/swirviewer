@@ -6,12 +6,6 @@
 #include "global.h"
 #include "imagebuffer.h"
 
-typedef struct _framebuffer {
-        uint16_t image[FRAME_PXCNT];
-        uint32_t param[FRAME_PMNUM];
-} PACKAGEBUFFER;
-typedef PACKAGEBUFFER* LPPACKAGEBUFFER;
-
 class SwirProcessor : public QThread
 {
     Q_OBJECT

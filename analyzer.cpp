@@ -7,24 +7,19 @@
 #include "linepicker.h"
 
 Analyzer::Analyzer(QWidget* parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
     , m_pSettings(nullptr)
 {
     setWindowTitle(QString::fromUtf8("图像分析"));
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
 
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
 
-    m_colorlist.push_back(Qt::blue);
     m_colorlist.push_back(Qt::red);
     m_colorlist.push_back(Qt::yellow);
-    m_colorlist.push_back(Qt::green);
     m_colorlist.push_back(Qt::white);
-
-    m_linelist.push_back(SWIRHEIGHT/2);
-    for(int i = 0; i < 4; i++)
-        m_linelist.push_back(-1);
+    m_colorlist.push_back(Qt::green);
+    m_colorlist.push_back(Qt::blue);
 
     QHBoxLayout* pLayout = new QHBoxLayout();
     QVBoxLayout* pControl = new QVBoxLayout();
@@ -32,15 +27,14 @@ Analyzer::Analyzer(QWidget* parent)
     pControl->addWidget(pbtnSnapshot);
     connect(pbtnSnapshot, SIGNAL(clicked()), this, SLOT(dumpImage()));
 #ifdef WIN32
-    pbtnSnapshot->setEnabled(false);
+//    pbtnSnapshot->setEnabled(false);
 #endif
     QVBoxLayout* pTable = new QVBoxLayout();
     for(int i = 0; i < 5; i++)
     {
-        LinePicker* pLinePicker = new LinePicker(i, m_linelist[i] > 0, m_linelist[i], m_colorlist[i]);
+        LinePicker* pLinePicker = new LinePicker(i, false, SWIRHEIGHT/2, m_colorlist[i]);
         pTable->addWidget(pLinePicker);
-        connect(pLinePicker, SIGNAL(addLine(int,int)), this, SLOT(addLine(int,int)));
-        connect(pLinePicker, SIGNAL(removeLine(int)), this, SLOT(removeLine(int)));
+        m_linepickerList.append(pLinePicker);
     }
 
     pControl->addLayout(pTable);
@@ -67,7 +61,7 @@ Analyzer::Analyzer(QWidget* parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-    setGeometry(settings.value("analyzer/geometry").toRect());
+    setGeometry(settings.value("analyzer/geometry", "@Rect(137 125 615 520)").toRect());
 }
 
 Analyzer::~Analyzer()
@@ -92,27 +86,7 @@ void Analyzer::closeEvent(QCloseEvent *event)
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
     settings.setValue("analyzer/geometry", geometry());
-//    settings.setValue("analyzerwindowState", saveState());
     QDialog::closeEvent(event);
-}
-
-void Analyzer::addLine(int index, int line)
-{
-    for(int i = 0; i < 5; i++)
-    {
-        if(m_linelist[i] == line)
-        {
-            m_linepickerList[index]->deselect();
-            return;
-        }
-    }
-
-    m_linelist[index] = line;
-}
-
-void Analyzer::removeLine(int index)
-{
-    m_linelist[index] = -1;
 }
 
 void Analyzer::createChart(QString title)
@@ -133,7 +107,7 @@ void Analyzer::createChart(QString title)
     m_axisX->setLabelFormat("%g");
     m_axisX->setTitleText(tr("X轴"));
     m_axisX->setRange(0, SWIRWIDTH);
-    m_axisY->setRange(0, 256);
+    m_axisY->setRange(0, 16384);    // pow(2, 14)
     m_axisY->setTitleText(QString::fromUtf8("灰度值"));
 }
 
@@ -146,7 +120,6 @@ void Analyzer::dumpImage()
     QString filename = path + tr("/") + time + ".png";
 
     snapshot.save(filename);
-    emit imageSaved(filename);
 }
 
 QImage Analyzer::imageFromChart()
@@ -158,18 +131,19 @@ QImage Analyzer::imageFromChart()
     return p.toImage();
 }
 
-void Analyzer::updateImage(QImage image)
+void Analyzer::updateImage(QByteArray image)
 {
-    m_image = image;
-    cv::Mat matImg = qimage2mat(image);
+    memcpy(&m_packageBuffer, image.data(), FRAMEBUFSIZE);
+    uint16_t *buffer = m_packageBuffer.image;
 
     for(int i = 0; i < 5; i++)
     {
         QVector<QPointF > testData;
-        if(m_linelist[i] > 0)
+        int value = -1;
+        if(m_linepickerList[i]->getStatus(&value))
         {
-            uchar* ptr = matImg.ptr<uchar>(m_linelist[i]);
-            for(int j = 0; j < matImg.cols; j++)
+            uint16_t* ptr = buffer + value * SWIRWIDTH;
+            for(int j = 0; j < SWIRWIDTH; j++)
             {
                 testData.push_back(QPointF(j, ptr[j]));
             }

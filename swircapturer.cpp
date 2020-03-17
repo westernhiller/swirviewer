@@ -31,6 +31,7 @@ SwirCapturer::~SwirCapturer()
     disconnectFromHost();
 }
 
+
 void SwirCapturer::onTimer()
 {
     if(!m_bConnected)
@@ -184,7 +185,7 @@ void SwirCapturer::readFromSocket()
     switch(m_lastCmd)
     {
     case SWIRCMD_GETFRAME:
-        emit getFrame(m_frameByteArray);
+        emit getFrame(QByteArray(m_frameByteArray));
         m_frameByteArray.clear();
         m_nBytes2Read = 0;
         break;

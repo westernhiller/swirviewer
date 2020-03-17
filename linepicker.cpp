@@ -7,7 +7,6 @@
 
 LinePicker::LinePicker(int index, bool bChecked, int line, QColor color, QWidget *parent)
     : QWidget(parent)
-    , m_index(index)
 {
     QHBoxLayout *pLayout = new QHBoxLayout();
     m_pCheckBox = new QCheckBox();
@@ -31,35 +30,20 @@ LinePicker::LinePicker(int index, bool bChecked, int line, QColor color, QWidget
     pLayout->addWidget(m_pColorButton);
 
     setLayout(pLayout);
-
-    connect(m_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxChanged(int)));
-    connect(m_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(spinBoxChanged(int)));
 }
 
 LinePicker::~LinePicker()
 {
 }
 
-void LinePicker::checkBoxChanged(int state)
+bool LinePicker::getStatus(int *value)
 {
-    if(state == Qt::Checked)
+    if(Qt::Checked != m_pCheckBox->checkState())
     {
-        emit addLine(m_index, m_pSpinBox->value());
+        *value = -1;
+        return false;
     }
-    else {
-        emit removeLine(m_index);
-    }
-}
+    *value = m_pSpinBox->value();
+    return true;
 
-void LinePicker::deselect()
-{
-    disconnect(m_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxChanged(int)));
-    m_pCheckBox->setCheckState(Qt::Unchecked);
-    connect(m_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxChanged(int)));
 }
-
-void LinePicker::spinBoxChanged(int value)
-{
-    deselect();
-}
-

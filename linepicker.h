@@ -16,20 +16,13 @@ public:
     explicit LinePicker(int index = 0, bool bChecked = false, int line = 0, QColor color = Qt::blue, QWidget *parent = nullptr);
     ~LinePicker() override;
 
-    void deselect();
+    bool getStatus(int* value);
 signals:
-    void addLine(int, int);
-    void removeLine(int);
 
 private:
     QCheckBox* m_pCheckBox;
     QSpinBox*   m_pSpinBox;
     QLabel* m_pColorButton;
-    int m_index;
-
-public slots:
-    void checkBoxChanged(int);
-    void spinBoxChanged(int);
 };
 
 #endif // LINEPICKER_H

@@ -21,12 +21,11 @@ const int FRAME_PMNUM =	16;
 const int FRAME_PXCNT = SWIRWIDTH * SWIRHEIGHT;
 const int FRAMEBUFSIZE = FRAME_PXCNT * 2 + 64;
 
-typedef enum
-{
-    WIDGET_INVALID,
-    WIDGET_VIEWER,
-    WIDGET_ANALYZER
-} WIDGET_ID;
+typedef struct _framebuffer {
+        uint16_t image[FRAME_PXCNT];
+        uint32_t param[FRAME_PMNUM];
+} PACKAGEBUFFER;
+typedef PACKAGEBUFFER* LPPACKAGEBUFFER;
 
 typedef struct
 {
@@ -40,6 +39,7 @@ typedef struct
     bool bIntegral;
     bool bCorrection;
     bool bMirror;
+    bool bImageMode;    //局部放大图像模式/文本模式
 } SWIRSETTINGS;
 
 void msleep(unsigned int msec);

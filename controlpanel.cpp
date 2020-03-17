@@ -9,11 +9,10 @@
 #include "mainwindow.h"
 
 ControlPanel::ControlPanel(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
     , ui(new Ui::ControlPanel)
     , m_bCameraConnected(false)
 {
-    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint);
     if(parent)
         m_pSettings = static_cast<MainWindow*>(parent)->getSettings();
     ui->setupUi(this);
@@ -23,6 +22,13 @@ ControlPanel::ControlPanel(QWidget *parent)
     ui->sliderGain->setRange(1, 10);
     ui->sliderGain->setTickInterval(1);
     ui->editCycle->setValidator(new QIntValidator(28, 5700, this));
+    ui->sbXCoord->setRange(0, SWIRWIDTH - 1);
+    ui->sbXCoord->setValue(SWIRWIDTH/2);
+    ui->sbYCoord->setRange(0, SWIRHEIGHT - 1);
+    ui->sbYCoord->setValue(SWIRHEIGHT/2);
+
+    connect(ui->sbXCoord, SIGNAL(valueChanged(int)), this, SLOT(XCoordChanged(int)));
+    connect(ui->sbYCoord, SIGNAL(valueChanged(int)), this, SLOT(YCoordChanged(int)));
 
     if(m_pSettings)
     {
@@ -35,6 +41,7 @@ ControlPanel::ControlPanel(QWidget *parent)
         ui->cbHistogram->setCheckState(m_pSettings->bHistogram? Qt::Checked : Qt::Unchecked);
         ui->cbHighgain->setCheckState(m_pSettings->bHighgain? Qt::Checked : Qt::Unchecked);
         ui->labelGain->setText(QString::number(m_pSettings->nGain));
+        ui->cbImageMode->setCheckState(m_pSettings->bImageMode? Qt::Checked : Qt::Unchecked);
     }
 
     enableItems(false);
@@ -48,6 +55,7 @@ ControlPanel::ControlPanel(QWidget *parent)
     connect(ui->cbHistogram, SIGNAL(stateChanged(int)), this, SLOT(histogramCheckBoxChanged(int)));
     connect(ui->cbNonuniform, SIGNAL(stateChanged(int)), this, SLOT(nonuniformCheckBoxChanged(int)));
     connect(ui->cbMirror, SIGNAL(stateChanged(int)), this, SLOT(mirrorCheckBoxChanged(int)));
+    connect(ui->cbImageMode, SIGNAL(stateChanged(int)), this, SLOT(imageModeCheckBoxChanged(int)));
     connect(ui->btnBrowse, SIGNAL(clicked()), this, SLOT(onBrowse()));
     connect(ui->btnAdjustOnsite, SIGNAL(clicked()), this, SLOT(onAdjustOnsite()));
 
@@ -57,7 +65,7 @@ ControlPanel::ControlPanel(QWidget *parent)
     QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
-    QRect rt = settings.value("control/geometry").toRect();
+    QRect rt = settings.value("control/geometry", "@Rect(0 0 435 652)").toRect();
     setGeometry(rt);
     setFixedSize(rt.width(), rt.height());
 }
@@ -67,12 +75,54 @@ ControlPanel::~ControlPanel()
     delete ui;
 }
 
+void ControlPanel::XCoordChanged(int value)
+{
+    int x = value;
+    int y = ui->sbYCoord->value();
+    emit pixelSelect(QPoint(x, y));
+}
+
+void ControlPanel::YCoordChanged(int value)
+{
+    int y = value;
+    int x = ui->sbXCoord->value();
+    emit pixelSelect(QPoint(x, y));
+}
+
+
+
 void ControlPanel::keyPressEvent(QKeyEvent* event)
 {
     int keyValue = event->key();
     if(keyValue & Qt::Key_Escape)
     {
     }
+    else if(keyValue & Qt::Key_Left)
+    {
+        qDebug() << "left";
+//        emit movePatchLeft();
+    }
+    else if(keyValue & Qt::Key_Right)
+    {
+        qDebug() << "right";
+//        emit movePatchRight();
+    }
+    else if(keyValue & Qt::Key_Up)
+    {
+        qDebug() << "up";
+//        emit movePatchUp();
+    }
+    else if(keyValue & Qt::Key_Down)
+    {
+        qDebug() << "down";
+//        emit movePatchDown();
+    }
+}
+
+void ControlPanel::onPixelSelect(QPoint pt)
+{
+    ui->sbXCoord->setValue(pt.x());
+    ui->sbYCoord->setValue(pt.y());
 }
 
 void ControlPanel::closeEvent(QCloseEvent *event)
@@ -84,7 +134,13 @@ void ControlPanel::closeEvent(QCloseEvent *event)
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
     settings.setValue("control/geometry", geometry());
+
     QDialog::closeEvent(event);
+}
+
+void ControlPanel::connected(bool bConnected)
+{
+    enableItems(bConnected);
 }
 
 void ControlPanel::enableItems(bool bEnable)
@@ -180,6 +236,12 @@ void ControlPanel::onSetCycle()
 {
     double value = ui->editCycle->text().toDouble();
     emit updateCycle(value);
+}
+
+void ControlPanel::imageModeCheckBoxChanged(int state)
+{
+    m_pSettings->bImageMode = state == Qt::Checked;
+    emit enableImageMode();
 }
 
 void ControlPanel::integralCheckBoxChanged(int state)

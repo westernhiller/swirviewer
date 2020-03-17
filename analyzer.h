@@ -30,10 +30,8 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    QImage          m_image;
     QLineEdit*      m_pImageName;
     QList<QColor>   m_colorlist;
-    QList<int>      m_linelist;
     QList<QLineSeries*> m_seriesList;
     QList<LinePicker*> m_linepickerList;
     QChart  *       m_pChart;
@@ -42,14 +40,13 @@ private:
     QValueAxis *    m_axisX;
     QValueAxis *    m_axisY;
     SWIRSETTINGS*   m_pSettings;
+    PACKAGEBUFFER   m_packageBuffer;
 
     void createChart(QString title);
     QImage imageFromChart();
 
-private slots:
-    void updateImage(QImage);
-    void addLine(int, int);
-    void removeLine(int);
+public slots:
+    void updateImage(QByteArray);
     void dumpImage();
 };
 

@@ -18,10 +18,27 @@ MainWindow::MainWindow(QWidget *parent)
 {
     loadConfig();
 
-//    setGeometry(0, 0, 850, 480);
+#ifdef WIN32
+    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
+#else
+    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
+#endif
+    restoreGeometry(settings.value("main/geometry").toByteArray());
+    restoreState(settings.value("main/windowState").toByteArray());
+    QRect geo = geometry();
 
-    QWidget* w = new QWidget(this);
-    QHBoxLayout* pLayout = new QHBoxLayout();
+    QImage imgSwir = QImage(tr(":/icons/swir.png"));
+    QColor clearColor;
+    clearColor.setHsv(255, 255, 63);
+
+    m_pCanvas = new GLCanvas(this, imgSwir);
+    m_pCanvas->setGeometry(210, 0, imgSwir.width(), imgSwir.height());
+    m_pCanvas->setClearColor(clearColor);
+    connect(m_pCanvas, SIGNAL(clicked()), this, SLOT(showToolbar()));
+
+    m_pToolBar = new QWidget(this);
+    m_pToolBar->setGeometry(0, 0, 210, geo.height());
     QVBoxLayout* pToolBar = new QVBoxLayout();
     m_pbtnConnect = new ImageButton(":/icons/connect.png");
     ImageButton* pbtnPhoto = new ImageButton(":/icons/photo.png", ":/icons/photopressed.png");
@@ -32,19 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
     pToolBar->addWidget(m_pbtnConnect);
     pToolBar->addWidget(pbtnPhoto);
     pToolBar->addWidget(pbtnVideo);
-    pLayout->addLayout(pToolBar);
-
-    QImage imgSwir = QImage(tr(":/icons/swir.png"));
-    QColor clearColor;
-    clearColor.setHsv(255, 255, 63);
-
-    m_pCanvas = new GLCanvas(this, imgSwir);
-    m_pCanvas->setGeometry(210, 0, imgSwir.width(), imgSwir.height());
-    m_pCanvas->setClearColor(clearColor);
-
-    pLayout->addWidget(m_pCanvas);
-    w->setLayout(pLayout);
-    setCentralWidget(w);
+    m_pToolBar->setLayout(pToolBar);
+    m_pToolBar->hide();
 
     m_pAnalyzer = new Analyzer(this);
     m_pAnalyzer->show();
@@ -76,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
         if(i == 0)
         {
             connect(pCapturer, SIGNAL(cameraConncted(bool)), this, SLOT(connected(bool)));
+            connect(pCapturer, SIGNAL(cameraConncted(bool)), m_pControl, SLOT(connected(bool)));
             connect(pCapturer, SIGNAL(updateMode(uint32_t)), m_pControl, SLOT(setMode(uint32_t)));
             connect(pCapturer, SIGNAL(updateIntegral(double)), m_pControl, SLOT(setIntegral(double)));
             connect(pCapturer, SIGNAL(updateCycle(double)), m_pControl, SLOT(setFrameCycle(double)));
@@ -85,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
             connect(m_pControl, SIGNAL(enableNonuniform(bool)), pCapturer, SLOT(enableNonuniformityCorrection(bool)));
             connect(m_pControl, SIGNAL(enableIntegral(bool)), pCapturer, SLOT(enableIntegralAdjustion(bool)));
             connect(m_pControl, SIGNAL(adjustOnsite()), pCapturer, SLOT(adjustOnsite()));
+            connect(m_pControl, SIGNAL(enableImageMode()), m_pPatchDlg, SLOT(enableImageMode()));
         }
         m_CapturerList.push_back(pCapturer);
     }
@@ -92,31 +100,27 @@ MainWindow::MainWindow(QWidget *parent)
     m_pVideoSaver = new VideoThread(this);
     m_pVideoSaver->start();
 
-    connect(this, SIGNAL(updatePatch(QImage)), m_pPatchDlg->getCanvas(), SLOT(updateImage(QImage)));
+    connect(this, SIGNAL(updatePatch(QImage)), m_pPatchDlg, SLOT(updateImage(QImage)));
     connect(this, SIGNAL(updateConnectIcon(QString)), m_pbtnConnect, SLOT(updateImage(QString)));
     connect(this, SIGNAL(updateImage(QImage)), m_pCanvas, SLOT(updateImage(QImage)));
-    connect(m_pCanvas, SIGNAL(boxSelect(QRect)), this, SLOT(onBoxSelect(QRect)));
+    connect(m_pCanvas, SIGNAL(pixelSelect(QPoint)), this, SLOT(onPixelSelect(QPoint)));
+    connect(m_pCanvas, SIGNAL(pixelSelect(QPoint)), m_pControl, SLOT(onPixelSelect(QPoint)));
+    connect(this, SIGNAL(pixelSelect(QPoint)), m_pControl, SLOT(onPixelSelect(QPoint)));
+    connect(m_pControl, SIGNAL(pixelSelect(QPoint)), this, SLOT(onPixelSelect(QPoint)));
     connect(m_pbtnConnect, SIGNAL(clicked()), this, SLOT(onConnect()));
 
     connect(this, SIGNAL(updateFPS(float)), m_pControl, SLOT(updateFPS(float)));
     connect(pbtnPhoto, SIGNAL(clicked()), this, SLOT(onSavePhoto()));
     connect(pbtnVideo, SIGNAL(clicked()), this, SLOT(onVideo()));
-    connect(this, SIGNAL(updateAnalyzeImage(QImage)), m_pAnalyzer, SLOT(updateImage(QImage)));
 
+    connect(this, SIGNAL(updateAnalyzeImage(QByteArray)), m_pAnalyzer, SLOT(updateImage(QByteArray)));
+
+    connect(m_pPatchDlg, SIGNAL(updateSize(int, int)), this, SLOT(updatePatchSize(int, int)));
     connect(m_pDisplayer, SIGNAL(display(QImage)), this, SLOT(onDisplay(QImage)));
     connect(this, SIGNAL(record(bool)), m_pDisplayer, SLOT(onRecord(bool)));
     connect(this, SIGNAL(record(bool)), m_pVideoSaver, SLOT(record(bool)));
     connect(m_pVideoSaver, SIGNAL(videoSaved(QString)), this, SLOT(onVideoSaved(QString)));
     connect(m_pAnalyzer, SIGNAL(imageSaved(QString)), this, SLOT(onPhotoSaved(QString)));
-
-#ifdef WIN32
-    QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
-#else
-    QString pathDefault = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
-#endif
-    restoreGeometry(settings.value("main/geometry").toByteArray());
-    restoreState(settings.value("main/windowState").toByteArray());
 
     m_pDisplayer->start();
     QTimer* t = new QTimer(this);
@@ -139,9 +143,20 @@ MainWindow::~MainWindow()
     m_ImageBufferList.clear();
 }
 
+void MainWindow::showToolbar()
+{
+    static bool bToolbar = false;
+
+    bToolbar = !bToolbar;
+    if(bToolbar)
+        m_pToolBar->show();
+    else {
+        m_pToolBar->hide();
+    }
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-//    emit storeGeometry();
 #ifdef WIN32
     QSettings settings("HKEY_CURRENT_USER\\Software\\SwirView", QSettings::NativeFormat);
 #else
@@ -149,9 +164,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QSettings settings(pathDefault + "/.swirview.ini", QSettings::NativeFormat);
 #endif
     settings.setValue("main/geometry", saveGeometry());
-    settings.setValue("main/windowState", saveState());
+    settings.setValue("main/windowState", saveState()); 
 
     saveConfig();
+
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::onConnect()
@@ -209,17 +226,79 @@ void MainWindow::onTimer()
     emit updateFPS(fFrame);
 
     m_bAnalyzing = true;
+    m_bZooming = true;
 }
 
 void MainWindow::onDisplay(QImage image)
 {
     emit updateImage(image);
-    emit updatePatch(image.copy(m_patchRect));
-    if(m_bAnalyzing)
+    if(m_bZooming)
     {
-        updateAnalyzeImage(image.copy());
-        m_bAnalyzing = false;
+        emit updatePatch(image.copy(m_patchRect));
+        m_bZooming = false;
     }
+}
+
+void MainWindow::onMovePatchLeft()
+{
+    m_patchCenter = QPoint(m_patchCenter.x() - 1, m_patchCenter.y());
+    m_patchRect.setX(m_patchCenter.x());
+    emit pixelSelect(m_patchCenter);
+}
+
+void MainWindow::onMovePatchRight()
+{
+    m_patchCenter = QPoint(m_patchCenter.x() + 1, m_patchCenter.y());
+    m_patchRect.setX(m_patchCenter.x());
+    emit pixelSelect(m_patchCenter);
+}
+
+
+void MainWindow::onMovePatchUp()
+{
+    m_patchCenter = QPoint(m_patchCenter.x(), m_patchCenter.y() - 1);
+    m_patchRect.setY(m_patchCenter.y());
+    emit pixelSelect(m_patchCenter);
+}
+
+
+void MainWindow::onMovePatchDown()
+{
+    m_patchCenter = QPoint(m_patchCenter.x(), m_patchCenter.y() + 1);
+    m_patchRect.setY(m_patchCenter.y());
+    emit pixelSelect(m_patchCenter);
+}
+
+
+void MainWindow::setPatchImageMode()
+{
+    QFont font;
+    if(m_settings.bImageMode)
+    {
+        int fw = m_patchRect.width() * TABLE_WIDTH;
+        int fh = m_patchRect.height() * TABLE_HEIGHT;
+        m_patchRect = QRect(m_patchCenter.x() - fw / 2, m_patchCenter.y() - fh /2, fw, fh);
+    }
+    else
+    {
+        int fw = m_patchRect.width() / TABLE_WIDTH;
+        int fh = m_patchRect.height() / TABLE_HEIGHT;
+        m_patchRect = QRect(m_patchCenter.x() - fw / 2, m_patchCenter.y() - fh /2, fw, fh);
+    }
+}
+
+void MainWindow::updatePatchSize(int width, int height)
+{
+    QFont font;
+    int fw = width;
+    int fh = height;
+
+    if(!m_settings.bImageMode)
+    {
+        fw = fw / TABLE_WIDTH;
+        fh = fh / TABLE_HEIGHT;
+    }
+    m_patchRect = QRect(m_patchCenter.x() - fw / 2, m_patchCenter.y() - fh /2, fw, fh);
 }
 
 void MainWindow::connectCamera(bool bConnect)
@@ -256,9 +335,15 @@ void MainWindow::onFrame(QByteArray frame)
     m_mutex.lock();
     m_nFrames++;
     m_mutex.unlock();
+
     SwirProcessor* pProcessor = new SwirProcessor(frame, this);
     connect(pProcessor, SIGNAL(killMe()), this, SLOT(killProcessor()));
     pProcessor->start();
+    if(m_bAnalyzing)
+    {
+        m_bAnalyzing = false;
+        emit updateAnalyzeImage(frame);
+    }
 }
 
 void MainWindow::killProcessor()
@@ -267,9 +352,14 @@ void MainWindow::killProcessor()
     delete pProcessor;
 }
 
-void MainWindow::onBoxSelect(QRect rt)
+void MainWindow::onPixelSelect(QPoint pt)
 {
-    m_patchRect = rt;
+    m_patchCenter = pt;
+    m_patchRect = QRect(pt.x() - m_patchRect.width()/2,
+                        pt.y() - m_patchRect.height()/2,
+                        m_patchRect.width(),
+                        m_patchRect.height());
+//    qDebug() << m_patchRect;
 }
 
 void MainWindow::onPatchClose()
@@ -283,10 +373,7 @@ void MainWindow::onPatchClose()
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
-    int h = rect().height();
-    int w = rect().width();
-
-    m_pCanvas->setGeometry(210, 0, w - 210, h);
+    m_pCanvas->setGeometry(this->rect());
 }
 
 void MainWindow::loadConfig()
@@ -311,6 +398,21 @@ void MainWindow::loadConfig()
     settings.beginGroup("common");
     m_settings.path = settings.value("path", pathDefault).toString();
     m_settings.bMirror = settings.value("mirror", "false").toBool();
+    m_settings.bImageMode = settings.value("imagemode", "false").toBool();
+    settings.endGroup();
+
+    settings.beginGroup("patch");
+    QRect patchRect = settings.value("geometry", "@Rect(300 673 390 401)").toRect();
+    m_patchCenter = QPoint(SWIRWIDTH/2, SWIRHEIGHT/2);
+    int fw = patchRect.width();
+    int fh = patchRect.height();
+
+    if(!m_settings.bImageMode)
+    {
+        fw = fw / TABLE_WIDTH;
+        fh = fh / TABLE_HEIGHT;
+    }
+    m_patchRect = QRect(SWIRWIDTH/2 - fw/2, SWIRHEIGHT/2 - fh/2, fw, fh);
     settings.endGroup();
 }
 
@@ -336,6 +438,7 @@ void MainWindow::saveConfig()
     settings.beginGroup("common");
     settings.setValue("path", m_settings.path);
     settings.setValue("mirror", m_settings.bMirror);
+    settings.setValue("imagemode", m_settings.bImageMode);
     settings.endGroup();
 }
 

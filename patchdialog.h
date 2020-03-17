@@ -3,7 +3,11 @@
 
 #include <QDialog>
 #include <QKeyEvent>
+#include <QTextEdit>
 #include "canvas.h"
+
+#define TABLE_WIDTH     28.5
+#define TABLE_HEIGHT    19.5
 
 class PatchDialog : public QDialog
 {
@@ -16,7 +20,12 @@ public:
     inline SWIRSETTINGS* getSettings() { return m_pSettings;}
     inline Canvas* getCanvas() { return m_pCanvas;}
 signals:
-    void updateImage(QImage);
+    void updatePatchImage(QImage);
+    void updateSize(int, int);
+    void movePatchLeft();
+    void movePatchRight();
+    void movePatchUp();
+    void movePatchDown();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -25,7 +34,12 @@ protected:
 
 private:
     Canvas*         m_pCanvas;
+    QTextEdit*      m_pText;
     SWIRSETTINGS*   m_pSettings;
+
+public slots:
+    void updateImage(QImage);
+    void enableImageMode();
 };
 
 #endif // SWIRDIALOG_H

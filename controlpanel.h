@@ -18,6 +18,7 @@ public:
 
 signals:
     void updateGain(int nGain);
+    void pixelSelect(QPoint);
     void savePhoto();
     void startRecording();
     void stopRecording();
@@ -27,6 +28,7 @@ signals:
     void enableHighgain(bool bEnable);
     void enableNonuniform(bool bEnable);
     void enableIntegral(bool bEnable);
+    void enableImageMode();
     void connectCamera(bool);
     void adjustOnsite();
     void exit();
@@ -52,11 +54,16 @@ public slots:
     void highgainCheckBoxChanged(int);
     void integralCheckBoxChanged(int);
     void nonuniformCheckBoxChanged(int);
+    void imageModeCheckBoxChanged(int);
     void mirrorCheckBoxChanged(int);
     void smoothCheckBoxChanged(int);
     void updateFPS(float);
     void onBrowse();
     void onAdjustOnsite();
+    void connected(bool);
+    void onPixelSelect(QPoint);
+    void XCoordChanged(int);
+    void YCoordChanged(int);
 };
 
 #endif // CONTROLPANEL_H
