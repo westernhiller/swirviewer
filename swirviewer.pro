@@ -35,6 +35,8 @@ LIBS += -L$$_PRO_FILE_PWD_/lib \
     -lavformat\
     -lswscale\
     -lswresample \
+#    -lCrashRpt1403 \
+#    -lCrashRptProbe1403 \
 
 CONFIG(debug, debug|release) {
     LIBS += -lopencv_world340d
@@ -76,10 +78,16 @@ SOURCES += \
         utils.cpp \
         videothread.cpp
 
+win32 {
+SOURCES += \
+#        crashhandler.cpp \
+}
+
 HEADERS += \
         analyzer.h \
         canvas.h \
         controlpanel.h \
+        crashhandler.h \
         glcanvas.h \
         global.h \
         imagebuffer.h \
@@ -93,6 +101,11 @@ HEADERS += \
         swirdisplayer.h \
         swirprocessor.h \
         videothread.h
+
+win32 {
+HEADERS += \
+#        crashhandler.h \
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

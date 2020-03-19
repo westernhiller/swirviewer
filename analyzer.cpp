@@ -7,7 +7,7 @@
 #include "linepicker.h"
 
 Analyzer::Analyzer(QWidget* parent)
-    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
+    : QDialog(parent, Qt::Dialog | Qt::WindowMinimizeButtonHint)
     , m_pSettings(nullptr)
 {
     setWindowTitle(QString::fromUtf8("图像分析"));

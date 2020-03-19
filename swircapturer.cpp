@@ -213,8 +213,8 @@ void SwirCapturer::parseParams()
     m_mutex.unlock();
 
     emit updateMode(m_params->mode.data32);
-    emit updateIntegral(m_params->integration.data32 * 0.00544);
-    emit updateCycle(m_params->framecycle.data32 * 0.05474);
+    emit updateIntegral(m_params->integration.data32 * 0.24 / 1000);
+    emit updateCycle(m_params->framecycle.data32 * 0.24 / 1000);
 }
 
 
@@ -301,7 +301,7 @@ void SwirCapturer::enableIntegralAdjustion(bool bEnable)
 void SwirCapturer::setIntegral(double integral)
 {
     UNION_REG regvalue;
-    regvalue.data32 = static_cast<uint32_t>(integral / 0.00544);
+    regvalue.data32 = static_cast<uint32_t>(integral / 0.24 *1000);
 
     QByteArray ba;
     ba.resize(5);
@@ -325,7 +325,7 @@ void SwirCapturer::setIntegral(double integral)
 void SwirCapturer::setCycle(double cycle)
 {
     UNION_REG regvalue;
-    regvalue.data32 = static_cast<uint32_t>(cycle / 0.05474);;
+    regvalue.data32 = static_cast<uint32_t>(cycle / 0.24 *1000);;
 
     QByteArray ba;
     ba.resize(5);

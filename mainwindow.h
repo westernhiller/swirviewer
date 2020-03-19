@@ -80,10 +80,6 @@ public slots:
     void            connected(bool);
     void            showToolbar();
     void            setPatchImageMode();
-    void            onMovePatchLeft();
-    void            onMovePatchRight();
-    void            onMovePatchUp();
-    void            onMovePatchDown();
 };
 
 #endif // MAINWINDOW_H

@@ -9,7 +9,7 @@
 #include "mainwindow.h"
 
 ControlPanel::ControlPanel(QWidget *parent)
-    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
+    : QDialog(parent, Qt::Dialog | Qt::WindowMinimizeButtonHint)
     , ui(new Ui::ControlPanel)
     , m_bCameraConnected(false)
 {
@@ -221,8 +221,7 @@ void ControlPanel::setIntegral(double integral)
 void ControlPanel::setFrameCycle(double cycle)
 {
     ui->editCycle->setText(QString::number(cycle, 10, 3));
-    int maxv = int(cycle - 28);
-    ui->editIntegral->setValidator(new QIntValidator(1, maxv, this));
+    ui->editIntegral->setValidator(new QDoubleValidator(0.1, cycle - 28, 10, this));
 }
 
 void ControlPanel::onSetIntegral()

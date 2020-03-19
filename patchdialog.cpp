@@ -3,7 +3,7 @@
 #include "mainwindow.h"
 
 PatchDialog::PatchDialog(QWidget *parent)
-    : QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint)
+    : QDialog(parent, Qt::Dialog | Qt::WindowMinimizeButtonHint)
     , m_pSettings(nullptr)
 {
     if(parent)

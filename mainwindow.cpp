@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_pPatchDlg(nullptr)
     , m_pControl(nullptr)
-    , m_nCapturers(3)
+    , m_nCapturers(1)
     , m_nFrames(0)
     , m_bRecording(false)
     , m_bCapturing(false)
@@ -92,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
             connect(m_pControl, SIGNAL(enableNonuniform(bool)), pCapturer, SLOT(enableNonuniformityCorrection(bool)));
             connect(m_pControl, SIGNAL(enableIntegral(bool)), pCapturer, SLOT(enableIntegralAdjustion(bool)));
             connect(m_pControl, SIGNAL(adjustOnsite()), pCapturer, SLOT(adjustOnsite()));
+            connect(m_pControl, SIGNAL(enableImageMode()), this, SLOT(setPatchImageMode()));
             connect(m_pControl, SIGNAL(enableImageMode()), m_pPatchDlg, SLOT(enableImageMode()));
         }
         m_CapturerList.push_back(pCapturer);
@@ -239,50 +240,20 @@ void MainWindow::onDisplay(QImage image)
     }
 }
 
-void MainWindow::onMovePatchLeft()
-{
-    m_patchCenter = QPoint(m_patchCenter.x() - 1, m_patchCenter.y());
-    m_patchRect.setX(m_patchCenter.x());
-    emit pixelSelect(m_patchCenter);
-}
-
-void MainWindow::onMovePatchRight()
-{
-    m_patchCenter = QPoint(m_patchCenter.x() + 1, m_patchCenter.y());
-    m_patchRect.setX(m_patchCenter.x());
-    emit pixelSelect(m_patchCenter);
-}
-
-
-void MainWindow::onMovePatchUp()
-{
-    m_patchCenter = QPoint(m_patchCenter.x(), m_patchCenter.y() - 1);
-    m_patchRect.setY(m_patchCenter.y());
-    emit pixelSelect(m_patchCenter);
-}
-
-
-void MainWindow::onMovePatchDown()
-{
-    m_patchCenter = QPoint(m_patchCenter.x(), m_patchCenter.y() + 1);
-    m_patchRect.setY(m_patchCenter.y());
-    emit pixelSelect(m_patchCenter);
-}
-
 
 void MainWindow::setPatchImageMode()
 {
     QFont font;
     if(m_settings.bImageMode)
     {
-        int fw = m_patchRect.width() * TABLE_WIDTH;
-        int fh = m_patchRect.height() * TABLE_HEIGHT;
+        int fw = m_patchRect.width() * TABLE_WIDTH / 4;
+        int fh = m_patchRect.height() * TABLE_HEIGHT / 4;
         m_patchRect = QRect(m_patchCenter.x() - fw / 2, m_patchCenter.y() - fh /2, fw, fh);
     }
     else
     {
-        int fw = m_patchRect.width() / TABLE_WIDTH;
-        int fh = m_patchRect.height() / TABLE_HEIGHT;
+        int fw = m_patchRect.width() / TABLE_WIDTH * 4;
+        int fh = m_patchRect.height() / TABLE_HEIGHT * 4;
         m_patchRect = QRect(m_patchCenter.x() - fw / 2, m_patchCenter.y() - fh /2, fw, fh);
     }
 }
